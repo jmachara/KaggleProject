@@ -13,12 +13,14 @@ from sklearn import svm
 from sklearn import tree 
 from sklearn.neural_network import MLPClassifier
 class Learn:
+    #Returns the number of wrong predictions
     def get_error(predictions,y_vals):
         error_count = 0
         for i in range(0,len(predictions)):
             if predictions[i] != y_vals.iloc[i]:
                 error_count += 1
         return error_count
+        #Hot encodes the data (Turns non binary attributes to binary attributes)
     def get_hot_data(train_file,test_file):
         data_path = Path('../Data')
         train_data = pd.read_csv(data_path/ train_file)
@@ -29,9 +31,10 @@ class Learn:
         id_arr = test_data.iloc[:,0]
         comb_data = dum_train.append(dum_test)
         dum_data = pd.get_dummies(comb_data)
-        return dum_data.iloc[0:split],dum_data.iloc[split:],train_data.iloc[:,-1],id_arr      
+        return dum_data.iloc[0:split],dum_data.iloc[split:],train_data.iloc[:,-1],id_arr 
+##Data     
 train_data,final_test_data,y_data,ids = Learn.get_hot_data('train_final.csv','test_final.csv')
-#Preprocessing the data
+#Preprocessing the data for testing
 #%%
 scalar = StandardScaler().fit(train_data,y_data)
 scaled_training_data = scalar.transform(train_data)
@@ -89,14 +92,12 @@ model = MLPClassifier(alpha=1,learning_rate='adaptive')
 #getting error from models
 error = 0
 for p in range(5):
-    print(p)
     model.fit(x_train_arr[p],y_train_arr[p])
     preds = model.predict(x_test_arr[p])
     error += Learn.get_error(preds,y_test_arr[p])/len(preds)
 print(error/5)
 #%%
-#submission
-print('working')
+#submission to Kaggle 
 model.fit(scaled_training_data,y_data)
 predictions = model.predict_proba(scaled_test_data)[:,1]
 frame = pd.DataFrame(pd.Series(ids,name='ID')).join(pd.DataFrame(pd.Series(predictions,name='Prediction')))
